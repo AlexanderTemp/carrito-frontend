@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Carrito } from '../types/carritoTypes'
 import {
   Avatar,
@@ -17,19 +17,29 @@ import { imprimir } from '@/utils/imprimir'
 import { Constantes } from '@/config/Constantes'
 import { InterpreteMensajes, delay } from '@/utils'
 import { useAlerts, useSession } from '@/hooks'
+import ProgresoLineal from '@/components/progreso/ProgresoLineal'
 
 interface Props {
   carrito: Carrito
   openCarrito: boolean
   cerrarCarrito: () => void
+  reiniciarCarrito: () => void
 }
 
 interface EnviarDetalle {
   idProducto: number
   cantidad: number
+  costo: number
 }
 
-const CarritoDrawer = ({ carrito, openCarrito, cerrarCarrito }: Props) => {
+const CarritoDrawer = ({
+  carrito,
+  openCarrito,
+  reiniciarCarrito,
+  cerrarCarrito,
+}: Props) => {
+  const [loadingCompra, setLoadingCompra] = useState<boolean>(false)
+
   const theme = useTheme()
   // Hook para mostrar alertas
   const { Alerta } = useAlerts()
@@ -44,20 +54,23 @@ const CarritoDrawer = ({ carrito, openCarrito, cerrarCarrito }: Props) => {
 
   const realizarVenta = async () => {
     try {
+      setLoadingCompra(true)
+      await delay(1000)
+
       const ventas: EnviarDetalle[] = carrito.productos.map((elem) => {
         return {
           idProducto: elem.id,
           cantidad: elem.cantidad,
+          costo: elem.precio,
         }
       })
 
       imprimir(ventas)
 
-      await delay(1000)
       const respuesta = await sesionPeticion({
         url: `${Constantes.baseUrl}/ventas`,
         tipo: 'post',
-        body: ventas,
+        body: { ventas },
       })
       Alerta({
         mensaje: InterpreteMensajes(respuesta),
@@ -66,6 +79,9 @@ const CarritoDrawer = ({ carrito, openCarrito, cerrarCarrito }: Props) => {
     } catch (e) {
       imprimir(`Error al crear o actualizar parámetro`, e)
       Alerta({ mensaje: `${InterpreteMensajes(e)}`, variant: 'error' })
+    } finally {
+      setLoadingCompra(false)
+      reiniciarCarrito()
     }
   }
 
@@ -148,9 +164,12 @@ const CarritoDrawer = ({ carrito, openCarrito, cerrarCarrito }: Props) => {
             </Typography>
           </Box>
 
+          <Box height={'10px'} />
           <Button variant="contained" onClick={() => realizarVenta()} fullWidth>
             Comprar
           </Button>
+          <Box height={'10px'} />
+          <ProgresoLineal mostrar={loadingCompra} />
         </Grid>
       </Grid>
     </Drawer>
@@ -158,6 +177,3 @@ const CarritoDrawer = ({ carrito, openCarrito, cerrarCarrito }: Props) => {
 }
 
 export default CarritoDrawer
-function sesionPeticion(arg0: { url: string; tipo: string; body: any }) {
-  throw new Error('Function not implemented.')
-}

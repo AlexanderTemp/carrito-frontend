@@ -5,15 +5,11 @@ import {
   Box,
   Button,
   Card,
-  CardActions,
   CardContent,
   CardMedia,
   Collapse,
   Grid,
-  IconButton,
-  IconButtonProps,
   Typography,
-  styled,
   useTheme,
 } from '@mui/material'
 import { IconoBoton } from '@/components/botones/IconoBoton'
@@ -37,6 +33,7 @@ const CardProduct = ({ producto, accionAumentar, accionDisminuir }: Props) => {
   return (
     <Card
       sx={{
+        border: 2,
         borderColor:
           producto.cantidad > 0
             ? theme.palette.primary.main
@@ -54,7 +51,7 @@ const CardProduct = ({ producto, accionAumentar, accionDisminuir }: Props) => {
         <Avatar>No Image</Avatar>
       )}
       <CardContent>
-        <Grid xs={12}>
+        <Box display="flex" flexDirection="column" gap={1}>
           <Typography variant="h6">{producto.nombreProducto}</Typography>
           <Box
             display="flex"
@@ -71,14 +68,13 @@ const CardProduct = ({ producto, accionAumentar, accionDisminuir }: Props) => {
               variant="subtitle1"
               sx={{ color: theme.palette.primary.main }}
             >
-              ({producto.cantidadDisponible})
+              (Max. {producto.cantidadDisponible})
             </Typography>
           </Box>
-        </Grid>
+        </Box>
 
         <Grid
           container
-          xs={12}
           sx={{
             paddingY: 2,
           }}
@@ -102,7 +98,7 @@ const CardProduct = ({ producto, accionAumentar, accionDisminuir }: Props) => {
           </CardContent>
         </Collapse>
 
-        <Grid container xs={12}>
+        <Grid container>
           {producto.cantidad === 0 ? (
             <Button
               fullWidth

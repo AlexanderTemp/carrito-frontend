@@ -56,8 +56,9 @@ export default function ProductosDisponiblesPage() {
       setLoading(true)
 
       const respuesta = await sesionPeticion({
-        url: `${Constantes.baseUrl}/productos`,
+        url: `${Constantes.baseUrl}/productos/all`,
       })
+      console.log(respuesta)
 
       //setProductosData(respuesta.datos[0])
       const productosCarrito: Producto[] = []
@@ -83,6 +84,18 @@ export default function ProductosDisponiblesPage() {
     }
   }
 
+  const reiniciarCarrito = () => {
+    setCarritoData((prevState) => ({
+      estado: false,
+      productos: prevState.productos.map((elem) => ({
+        ...elem,
+        cantidad: 0,
+      })),
+    }))
+
+    setClickCarrito(false)
+  }
+
   async function definirPermisos() {
     setPermisos(await permisoUsuario(pathname))
   }
@@ -95,10 +108,7 @@ export default function ProductosDisponiblesPage() {
   useEffect(() => {
     obtenerProductosPeticion().finally(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    filtroProducto,
-  ])
+  }, [filtroProducto])
 
   useEffect(() => {
     if (!mostrarFiltroProductos) {
@@ -197,11 +207,38 @@ export default function ProductosDisponiblesPage() {
           </Grid>
         ))}
       </Grid>
+      <Box height={'40px'} />
       <CarritoDrawer
+        reiniciarCarrito={reiniciarCarrito}
         carrito={carritoData}
         cerrarCarrito={() => setClickCarrito(false)}
         openCarrito={clickCarrito}
       />
+
+      {/* <div
+        style={{
+          borderRadius: '50%',
+          borderColor: theme.palette.primary.main,
+          position: 'fixed',
+          color: 'white',
+          width: '100px',
+          textAlign: 'center',
+          right: '-23px',
+          top: '10px',
+        }}
+      >
+        <IconoTooltip
+          color={carritoData.estado ? 'primary' : 'disabled'}
+          id={'carritoProductos'}
+          titulo={'Carrito'}
+          key={`accionVerCarrito`}
+          accion={() => {
+            if (carritoData.estado) setClickCarrito(true)
+          }}
+          icono={'shopping_cart'}
+          name={'Ver total del carrito'}
+        />
+      </div>*/}
     </>
   )
 }

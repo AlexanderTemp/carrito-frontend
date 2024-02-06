@@ -5,8 +5,8 @@ export interface ProductoCRUDType {
   codigoProducto: string
   nombreProducto: string
   descripcion: string
-  precio: string
-  cantidadDisponible: string
+  precio: number
+  cantidadDisponible: number
   imagen: string
   estado: string
 }
@@ -16,7 +16,7 @@ export interface CrearEditarProductoCRUDType {
   codigoProducto: string
   nombreProducto: string
   descripcion: string
-  precio: string
-  cantidadDisponible: string
+  precio: number
+  cantidadDisponible: number
   imagen: string
 }

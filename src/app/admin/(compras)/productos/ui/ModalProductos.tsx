@@ -54,6 +54,8 @@ export const VistaModalProducto = ({
   ) => {
     try {
       setLoadingModal(true)
+      producto.precio = Number(producto.precio)
+      producto.cantidadDisponible = Number(producto.cantidadDisponible)
       await delay(1000)
       const respuesta = await sesionPeticion({
         url: `${Constantes.baseUrl}/productos${
@@ -86,7 +88,10 @@ export const VistaModalProducto = ({
                 control={control}
                 name="codigoProducto"
                 label="Código"
-                disabled={loadingModal}
+                disabled={
+                  (producto?.id !== null || producto?.id !== undefined) &&
+                  loadingModal
+                }
                 rules={{ required: 'Este campo es requerido' }}
               />
             </Grid>
@@ -103,7 +108,7 @@ export const VistaModalProducto = ({
           </Grid>
           <Box height={'15px'} />
           <Grid container direction="row" spacing={{ xs: 2, sm: 1, md: 2 }}>
-            <Grid item xs={12} sm={12} md={6}>
+            <Grid item xs={12} sm={12} md={12}>
               <FormInputText
                 id={'descripcion'}
                 control={control}
@@ -117,7 +122,7 @@ export const VistaModalProducto = ({
 
           <Box height={'15px'} />
           <Grid container direction="row" spacing={{ xs: 2, sm: 1, md: 2 }}>
-            <Grid item xs={12} sm={12} md={6}>
+            <Grid item xs={12} sm={12} md={12}>
               <FormInputText
                 id={'imagen'}
                 control={control}
@@ -134,6 +139,7 @@ export const VistaModalProducto = ({
               <FormInputText
                 id={'precio'}
                 control={control}
+                type={'number'}
                 name="precio"
                 label="Precio"
                 disabled={loadingModal}
@@ -145,6 +151,7 @@ export const VistaModalProducto = ({
                 id={'cantidadDisponible'}
                 control={control}
                 name="cantidadDisponible"
+                type={'number'}
                 label="Cantidad"
                 disabled={loadingModal}
                 rules={{ required: 'Este campo es requerido' }}

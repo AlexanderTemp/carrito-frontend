@@ -293,6 +293,8 @@ export default function ProductosPage() {
         },
       })
 
+      console.log(respuesta)
+
       setProductosData(respuesta.datos[0])
 
       // setProductosData(respuesta.datos?.filas)
