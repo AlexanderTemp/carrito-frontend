@@ -19,10 +19,27 @@ import { IconoBoton } from '@/components/botones/IconoBoton'
 import { ordenFiltrado } from '@/utils/orden'
 import { Paginacion } from '@/components/datatable/Paginacion'
 import { CustomDataTable } from '@/components/datatable/CustomDataTable'
-import { VentaCRUDType } from './types/historialCRUDType'
+import {
+  EnvioNuevoEstado,
+  EstadoVenta,
+  VentaCRUDType,
+} from './types/historialCRUDType'
 import { FormInputDropdown } from '@/components/form'
+import { useForm } from 'react-hook-form'
 
 export default function HistorialVentasPage() {
+  const { control } = useForm<EnvioNuevoEstado>({
+    defaultValues: {
+      id: -1,
+      estado: EstadoVenta.PENDIENTE,
+    },
+  })
+
+  const [estadoVenta, setEstadoVenta] = useState<EnvioNuevoEstado>({
+    id: -1,
+    estado: EstadoVenta.PENDIENTE,
+  })
+
   const [ventasData, setVentasData] = useState<VentaCRUDType[]>([])
   const [loading, setLoading] = useState<boolean>(true)
 
@@ -92,7 +109,6 @@ export default function HistorialVentasPage() {
     { campo: 'producto', nombre: 'Detalle', ordenar: true },
     { campo: 'estado', nombre: 'Estado', ordenar: true },
     { campo: 'cambiar-estado', nombre: 'Cambiar estado', ordenar: false },
-    { campo: 'acciones', nombre: 'Acciones' },
   ])
 
   const contenidoTabla: Array<Array<ReactNode>> = ventasData.map(
@@ -133,7 +149,7 @@ export default function HistorialVentasPage() {
             key={`${elem.idProducto}-${indexProducto}-producto`}
             variant={'body2'}
           >
-            {`${elem.nombreProducto} - [${elem.cantidad} x ${elem.precio} Bs.]`}
+            {`- ${elem.nombreProducto} - [${elem.cantidad} x ${elem.precio} Bs.]`}
           </Typography>
         ))}
       </Box>,
@@ -152,45 +168,38 @@ export default function HistorialVentasPage() {
                 : 'primary'
         }
       />,
-      <select key={`${ventaData.idVenta}-${indexVenta}-cambio`}>
-        <option value="PENDIENTE">PENDIENTE</option>
-        <option value="ENVIADO">ENVIADO</option>
-        <option value="ENTREGADO">ENTREGADO</option>
-        <option value="CANCELADO">CANCELADO</option>
-      </select>,
-      <Grid key={`${ventaData.idVenta}-${indexVenta}-acciones`}>
-        {permisos.update && (
-          <IconoTooltip
-            id={`cambiarEstadoVenta-${ventaData.idVenta}`}
-            titulo={ventaData.estado == 'ACTIVO' ? 'Inactivar' : 'Activar'}
-            color={ventaData.estado == 'ACTIVO' ? 'success' : 'error'}
-            accion={async () => {
-              await editarEstadoVentaModal(ventaData)
-            }}
-            desactivado={ventaData.estado == 'PENDIENTE'}
-            icono={ventaData.estado == 'ACTIVO' ? 'toggle_on' : 'toggle_off'}
-            name={
-              ventaData.estado == 'ACTIVO'
-                ? 'Inactivar Parámetro'
-                : 'Activar Parámetro'
-            }
-          />
-        )}
-
-        {permisos.update && (
-          <IconoTooltip
-            id={`editarVentas-${ventaData.idVenta}`}
-            name={'Ventas'}
-            titulo={'Editar'}
-            color={'primary'}
-            accion={() => {
-              imprimir(`Editaremos`, ventaData)
-              editarVentaModal(ventaData)
-            }}
-            icono={'edit'}
-          />
-        )}
-      </Grid>,
+      <FormInputDropdown
+        label=""
+        control={control}
+        key={`${ventaData.idVenta}-${indexVenta}-cambio`}
+        id="estado"
+        name="estado"
+        onChange={(event) => {
+          imprimir(event.target.value)
+        }}
+        options={[
+          {
+            key: '1',
+            value: 'PENDIENTE',
+            label: 'PENDIENTE',
+          },
+          {
+            key: '2',
+            value: 'ENVIADO',
+            label: 'ENVIADO',
+          },
+          {
+            key: '3',
+            value: 'ENTREGADO',
+            label: 'ENTREGADO',
+          },
+          {
+            key: '4',
+            value: 'CANCELADO',
+            label: 'CANCELADO',
+          },
+        ]}
+      />,
     ]
   )
 
@@ -220,19 +229,6 @@ export default function HistorialVentasPage() {
       icono={'refresh'}
       name={'Actualizar lista de ventas'}
     />,
-    permisos.create && (
-      <IconoBoton
-        id={'agregarVenta'}
-        key={'agregarVenta'}
-        texto={'Agregar'}
-        variante={xs ? 'icono' : 'boton'}
-        icono={'add_circle_outline'}
-        descripcion={'Agregar venta'}
-        accion={() => {
-          agregarVentaModal()
-        }}
-      />
-    ),
   ]
 
   const obtenerVentasPeticion = async () => {

@@ -131,9 +131,8 @@ const MisComprasPage = () => {
         url: `${Constantes.baseUrl}/ventas`,
       })
 
+      console.log(respuesta)
       setcomprasData(respuesta.datos)
-
-      imprimir(respuesta.datos)
       // setcomprasData(respuesta.datos?.filas)
       setTotal(respuesta.datos?.total)
       setErrorcomprasData(null)

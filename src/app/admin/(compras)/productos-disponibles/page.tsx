@@ -1,10 +1,10 @@
 'use client'
 
-import { ReactNode, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAlerts, useSession } from '@/hooks'
 import { useAuth } from '@/context/AuthProvider'
 import { CasbinTypes } from '@/types'
-import { Box, Grid, useTheme } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import { siteName } from '@/utils'
 
 import { Constantes } from '@/config/Constantes'
@@ -14,15 +14,11 @@ import { usePathname } from 'next/navigation'
 import { IconoTooltip } from '@/components/botones/IconoTooltip'
 import { BotonBuscar } from '@/components/botones/BotonBuscar'
 
-import { Paginacion } from '@/components/datatable/Paginacion'
-
 import CardProduct from './ui/CardProduct'
 import { Carrito, Producto } from './types/carritoTypes'
 import CarritoDrawer from './ui/Carrito'
 
 export default function ProductosDisponiblesPage() {
-  const theme = useTheme()
-
   const [carritoData, setCarritoData] = useState<Carrito>({
     estado: false,
     productos: [],
@@ -58,7 +54,6 @@ export default function ProductosDisponiblesPage() {
       const respuesta = await sesionPeticion({
         url: `${Constantes.baseUrl}/productos/all`,
       })
-      console.log(respuesta)
 
       //setProductosData(respuesta.datos[0])
       const productosCarrito: Producto[] = []

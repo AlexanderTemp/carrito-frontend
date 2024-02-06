@@ -9,3 +9,15 @@ export interface VentaCRUDType {
   nombreUsuario: string
   apellidosUsuario: string
 }
+
+export enum EstadoVenta {
+  PENDIENTE = 'PENDIENTE',
+  ENVIADO = 'ENVIADO',
+  ENTREGADO = 'ENTREGADO',
+  CANCELADO = 'CANCELADO',
+}
+
+export interface EnvioNuevoEstado {
+  id: number
+  estado: EstadoVenta
+}

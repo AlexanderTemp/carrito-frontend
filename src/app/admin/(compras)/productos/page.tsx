@@ -292,12 +292,7 @@ export default function ProductosPage() {
               }),
         },
       })
-
-      console.log(respuesta)
-
-      setProductosData(respuesta.datos[0])
-
-      // setProductosData(respuesta.datos?.filas)
+      setProductosData(respuesta.datos?.filas)
       setTotal(respuesta.datos?.total)
       setErrorProductosData(null)
     } catch (e) {
