@@ -11,6 +11,7 @@ import { Constantes } from '@/config/Constantes'
 import { imprimir } from '@/utils/imprimir'
 import { FormInputText } from 'src/components/form'
 import ProgresoLineal from '@/components/progreso/ProgresoLineal'
+import FormInputFile from '@/components/form/FormInputFile'
 
 export interface ModalProductoType {
   producto?: ProductoCRUDType | null
@@ -54,16 +55,28 @@ export const VistaModalProducto = ({
   ) => {
     try {
       setLoadingModal(true)
-      producto.precio = Number(producto.precio)
-      producto.cantidadDisponible = Number(producto.cantidadDisponible)
       await delay(1000)
+
+      const dataSend: FormData = new FormData()
+      dataSend.set('codigoProducto', producto.codigoProducto)
+      dataSend.set('nombreProducto', producto.nombreProducto)
+      dataSend.set('descripcion', producto.descripcion)
+      dataSend.set('precio', String(Number(producto.precio)))
+      dataSend.set(
+        'cantidadDisponible',
+        String(Number(producto.cantidadDisponible))
+      )
+      // @ts-ignore
+      dataSend.set('imagen', producto.imagen[0])
+
       const respuesta = await sesionPeticion({
         url: `${Constantes.baseUrl}/productos${
           producto.id ? `/${producto.id}` : ''
         }`,
         tipo: !!producto.id ? 'patch' : 'post',
-        body: producto,
+        body: dataSend,
       })
+
       Alerta({
         mensaje: InterpreteMensajes(respuesta),
         variant: 'success',
@@ -122,19 +135,6 @@ export const VistaModalProducto = ({
 
           <Box height={'15px'} />
           <Grid container direction="row" spacing={{ xs: 2, sm: 1, md: 2 }}>
-            <Grid item xs={12} sm={12} md={12}>
-              <FormInputText
-                id={'imagen'}
-                control={control}
-                name="imagen"
-                label="Imagen"
-                disabled={loadingModal}
-              />
-            </Grid>
-          </Grid>
-
-          <Box height={'15px'} />
-          <Grid container direction="row" spacing={{ xs: 2, sm: 1, md: 2 }}>
             <Grid item xs={12} sm={12} md={6}>
               <FormInputText
                 id={'precio'}
@@ -155,6 +155,19 @@ export const VistaModalProducto = ({
                 label="Cantidad"
                 disabled={loadingModal}
                 rules={{ required: 'Este campo es requerido' }}
+              />
+            </Grid>
+          </Grid>
+
+          <Box height={'15px'} />
+          <Grid container direction="row" spacing={{ xs: 2, sm: 1, md: 2 }}>
+            <Grid item xs={12} sm={12} md={12}>
+              <FormInputFile
+                id="imagen"
+                control={control}
+                name="imagen"
+                label="Imagen"
+                limite={1}
               />
             </Grid>
           </Grid>

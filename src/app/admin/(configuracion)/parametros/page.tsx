@@ -48,6 +48,7 @@ export default function ParametrosPage() {
   const [total, setTotal] = useState<number>(0)
 
   const { sesionPeticion } = useSession()
+  
   const { permisoUsuario } = useAuth()
 
   const [filtroParametro, setFiltroParametro] = useState<string>('')

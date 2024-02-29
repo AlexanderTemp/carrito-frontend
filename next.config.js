@@ -27,7 +27,13 @@ const nextConfig = {
     dirs: ['src', 'stories', 'test'],
   },
   images: {
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+      },
+    ],
   },
 }
 

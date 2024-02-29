@@ -6,6 +6,8 @@ export interface VentaCRUDType {
   codigoVenta: string
   totalVenta: number
   productos: RowCompra[]
+  idUsuario: string
+  correoUsuario: string
   nombreUsuario: string
   apellidosUsuario: string
 }

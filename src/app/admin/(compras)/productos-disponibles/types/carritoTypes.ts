@@ -15,3 +15,12 @@ export interface Producto {
   imagen: string
   estado: string
 }
+
+export interface ProductoCarrito {
+  id: number
+  cantidad: number
+  nombreProducto: string
+  codigoProducto: string
+  precio: number
+  imagen: string
+}

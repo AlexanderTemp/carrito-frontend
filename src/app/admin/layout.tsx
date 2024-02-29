@@ -8,9 +8,11 @@ import { Grid, useMediaQuery, useTheme } from '@mui/material'
 import { NavbarUser } from '@/components/navbars/NavbarUser'
 import { Sidebar } from '@/components/sidebar/Sidebar'
 import { imprimir } from '@/utils/imprimir'
+import { CartProvider, useCart } from '@/context/CartProvider'
 
 const Contenido = ({ children }: { children: ReactNode }) => {
   const { sideMenuOpen } = useSidebar()
+  const { deactiveEstado } = useCart()
 
   const { inicializarUsuario, estaAutenticado, progresoLogin } = useAuth()
 
@@ -89,7 +91,9 @@ const Contenido = ({ children }: { children: ReactNode }) => {
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <SideBarProvider>
-      <Contenido>{children}</Contenido>
+      <CartProvider>
+        <Contenido>{children}</Contenido>
+      </CartProvider>
     </SideBarProvider>
   )
 }

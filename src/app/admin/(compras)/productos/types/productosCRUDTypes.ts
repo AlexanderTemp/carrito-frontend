@@ -18,5 +18,5 @@ export interface CrearEditarProductoCRUDType {
   descripcion: string
   precio: number
   cantidadDisponible: number
-  imagen: string
+  imagen?: File | string
 }

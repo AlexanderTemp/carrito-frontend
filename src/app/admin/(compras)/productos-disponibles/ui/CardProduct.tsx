@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import { ProductoCRUDType } from '../../productos/types/productosCRUDTypes'
 import {
-  Avatar,
   Box,
   Button,
   Card,
@@ -14,6 +13,8 @@ import {
 } from '@mui/material'
 import { IconoBoton } from '@/components/botones/IconoBoton'
 import { Producto } from '../types/carritoTypes'
+import { Icono } from '@/components/Icono'
+import { Constantes } from '@/config/Constantes'
 
 interface Props {
   producto: Producto
@@ -33,6 +34,7 @@ const CardProduct = ({ producto, accionAumentar, accionDisminuir }: Props) => {
   return (
     <Card
       sx={{
+        borderRadius: 4,
         border: 2,
         borderColor:
           producto.cantidad > 0
@@ -43,12 +45,16 @@ const CardProduct = ({ producto, accionAumentar, accionDisminuir }: Props) => {
       {producto.imagen && producto.imagen.length > 0 ? (
         <CardMedia
           component="img"
+          sx={{ borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
           height={200}
-          image={producto.imagen}
-          alt={`producto-${producto.id}-${producto.nombreProducto}`}
+          crossOrigin="anonymous"
+          image={`${Constantes.baseUrl.replaceAll('/api', '')}/${producto.imagen}`}
+          alt={`image-${producto.nombreProducto}`}
         />
       ) : (
-        <Avatar>No Image</Avatar>
+        <Box sx={{ padding: 3 }}>
+          <Typography>No tiene imagen</Typography>
+        </Box>
       )}
       <CardContent>
         <Box display="flex" flexDirection="column" gap={1}>
@@ -103,9 +109,12 @@ const CardProduct = ({ producto, accionAumentar, accionDisminuir }: Props) => {
             <Button
               fullWidth
               onClick={() => accionAumentar(producto.id)}
-              variant="outlined"
+              variant="contained"
             >
-              Agregar
+              <Box display="flex" justifyContent="center" gap={2}>
+                <Icono color="inherit">add</Icono>
+                <Typography>Agregar</Typography>
+              </Box>
             </Button>
           ) : (
             <Box
@@ -121,6 +130,10 @@ const CardProduct = ({ producto, accionAumentar, accionDisminuir }: Props) => {
                 display="flex"
                 justifyContent="space-between"
                 alignItems="center"
+                padding={1}
+                border={1}
+                borderRadius={8}
+                borderColor={theme.palette.primary.main}
                 gap={2}
               >
                 <IconoBoton

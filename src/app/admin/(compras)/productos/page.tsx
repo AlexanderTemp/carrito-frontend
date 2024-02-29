@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthProvider'
 import { CasbinTypes } from '@/types'
 import {
   Avatar,
+  Box,
   Button,
   Card,
   CardMedia,
@@ -167,11 +168,14 @@ export default function ProductosPage() {
           <CardMedia
             component="img"
             height="120"
-            image={productoData.imagen}
+            crossOrigin="anonymous"
+            image={`${Constantes.baseUrl.replaceAll('/api', '')}/${productoData.imagen}`}
             alt={`image-${productoData.nombreProducto}`}
           />
         ) : (
-          <Avatar>No IMG</Avatar>
+          <Box sx={{ padding: 3 }}>
+            <Typography>No tiene imagen</Typography>
+          </Box>
         )}
       </Card>,
 

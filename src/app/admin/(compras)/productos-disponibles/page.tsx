@@ -5,7 +5,7 @@ import { useAlerts, useSession } from '@/hooks'
 import { useAuth } from '@/context/AuthProvider'
 import { CasbinTypes } from '@/types'
 import { Box, Grid } from '@mui/material'
-import { siteName } from '@/utils'
+import { InterpreteMensajes, siteName } from '@/utils'
 
 import { Constantes } from '@/config/Constantes'
 import { imprimir } from '@/utils/imprimir'
@@ -15,10 +15,19 @@ import { IconoTooltip } from '@/components/botones/IconoTooltip'
 import { BotonBuscar } from '@/components/botones/BotonBuscar'
 
 import CardProduct from './ui/CardProduct'
-import { Carrito, Producto } from './types/carritoTypes'
+import { Carrito, Producto, ProductoCarrito } from './types/carritoTypes'
 import CarritoDrawer from './ui/Carrito'
+import { useCart } from '@/context/CartProvider'
 
 export default function ProductosDisponiblesPage() {
+  const {
+    cartEstado,
+    closeCartDrawer,
+    activeEstado,
+    deactiveEstado,
+    cartContent,
+    addNuevoProducto,
+  } = useCart()
   const [carritoData, setCarritoData] = useState<Carrito>({
     estado: false,
     productos: [],
@@ -34,28 +43,15 @@ export default function ProductosDisponiblesPage() {
 
   const [filtroProducto, setFiltroProducto] = useState<string>('')
   const [mostrarFiltroProductos, setMostrarFiltroProductos] = useState(false)
-  // Permisos para acciones
-  const [permisos, setPermisos] = useState<CasbinTypes>({
-    read: false,
-    create: false,
-    update: false,
-    delete: false,
-  })
 
   // router para conocr la ruta actual
   const pathname = usePathname()
-
-  const [clickCarrito, setClickCarrito] = useState(false)
-
   const obtenerProductosPeticion = async () => {
     try {
       setLoading(true)
-
       const respuesta = await sesionPeticion({
         url: `${Constantes.baseUrl}/productos/all`,
       })
-
-      //setProductosData(respuesta.datos[0])
       const productosCarrito: Producto[] = []
       for (const prod of respuesta.datos[0]) {
         productosCarrito.push({
@@ -67,13 +63,9 @@ export default function ProductosDisponiblesPage() {
         ...carritoData,
         productos: productosCarrito,
       })
-
-      // setProductosData(respuesta.datos?.filas)
-      //setErrorProductosData(null)
     } catch (e) {
       imprimir(`Error al obtener productos`, e)
-      //setErrorProductosData(e)
-      //Alerta({ mensaje: `${InterpreteMensajes(e)}`, variant: 'error' })
+      Alerta({ mensaje: `${InterpreteMensajes(e)}`, variant: 'error' })
     } finally {
       setLoading(false)
     }
@@ -88,17 +80,10 @@ export default function ProductosDisponiblesPage() {
       })),
     }))
 
-    setClickCarrito(false)
-  }
+    closeCartDrawer()
 
-  async function definirPermisos() {
-    setPermisos(await permisoUsuario(pathname))
+    obtenerProductosPeticion()
   }
-
-  useEffect(() => {
-    definirPermisos().finally()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   useEffect(() => {
     obtenerProductosPeticion().finally(() => {})
@@ -111,6 +96,34 @@ export default function ProductosDisponiblesPage() {
     }
   }, [mostrarFiltroProductos])
 
+  const eliminarProductoCarrito = (id: number) => {
+    setCarritoData((prevCarritoData) => {
+      const modifiedProducto = prevCarritoData.productos.map((modProd) => {
+        if (modProd.id === id) {
+          return { ...modProd, cantidad: 0 }
+        }
+        return modProd
+      })
+
+      return {
+        estado: modifiedProducto.some((prod) => prod.cantidad > 0),
+        productos: modifiedProducto,
+      }
+    })
+  }
+
+  const agregarProductoAlCarrito = (producto: Producto) => {
+    const productoAlCarrito: ProductoCarrito = {
+      cantidad: 1,
+      codigoProducto: producto.codigoProducto,
+      nombreProducto: producto.nombreProducto,
+      precio: producto.precio,
+      imagen: producto.imagen,
+      id: producto.id,
+    }
+    addNuevoProducto(productoAlCarrito)
+  }
+
   const accionAgregarProducto = (id: number) => {
     setCarritoData((prevCarritoData) => {
       const modifiedProducto = prevCarritoData.productos.map((modProd) => {
@@ -118,6 +131,10 @@ export default function ProductosDisponiblesPage() {
           modProd.id === id &&
           modProd.cantidad < modProd.cantidadDisponible
         ) {
+          agregarProductoAlCarrito({
+            ...modProd,
+            cantidad: modProd.cantidad + 1,
+          })
           return { ...modProd, cantidad: modProd.cantidad + 1 }
         }
         return modProd
@@ -129,7 +146,13 @@ export default function ProductosDisponiblesPage() {
       }
     })
   }
-  useEffect(() => {}, [carritoData, setCarritoData])
+  useEffect(() => {
+    if (carritoData.estado) {
+      activeEstado()
+    } else {
+      deactiveEstado()
+    }
+  }, [carritoData, setCarritoData])
 
   const accionQuitarProducto = (id: number) => {
     setCarritoData((prevCarritoData) => {
@@ -168,23 +191,12 @@ export default function ProductosDisponiblesPage() {
             icono={'refresh'}
             name={'Actualizar lista de productos'}
           />
-          <IconoTooltip
-            color={carritoData.estado ? 'primary' : 'disabled'}
-            id={'carritoProductos'}
-            titulo={'Carrito'}
-            key={`accionVerCarrito`}
-            accion={() => {
-              if (carritoData.estado) setClickCarrito(true)
-            }}
-            icono={'shopping_cart'}
-            name={'Ver total del carrito'}
-          />
         </Grid>
       </Box>
       <Grid
         container
         spacing={{ xs: 2, md: 3 }}
-        columns={{ xs: 4, sm: 8, md: 12 }}
+        columns={{ xs: 2, sm: 8, md: 12 }}
       >
         {carritoData.productos.map((prod) => (
           <Grid
@@ -203,37 +215,14 @@ export default function ProductosDisponiblesPage() {
         ))}
       </Grid>
       <Box height={'40px'} />
-      <CarritoDrawer
+
+      {/*
+        <CarritoDrawer
         reiniciarCarrito={reiniciarCarrito}
         carrito={carritoData}
-        cerrarCarrito={() => setClickCarrito(false)}
-        openCarrito={clickCarrito}
-      />
-
-      {/* <div
-        style={{
-          borderRadius: '50%',
-          borderColor: theme.palette.primary.main,
-          position: 'fixed',
-          color: 'white',
-          width: '100px',
-          textAlign: 'center',
-          right: '-23px',
-          top: '10px',
-        }}
-      >
-        <IconoTooltip
-          color={carritoData.estado ? 'primary' : 'disabled'}
-          id={'carritoProductos'}
-          titulo={'Carrito'}
-          key={`accionVerCarrito`}
-          accion={() => {
-            if (carritoData.estado) setClickCarrito(true)
-          }}
-          icono={'shopping_cart'}
-          name={'Ver total del carrito'}
-        />
-      </div>*/}
+        quitarProducto={eliminarProductoCarrito}
+        />        
+        */}
     </>
   )
 }

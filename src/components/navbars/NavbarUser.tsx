@@ -11,10 +11,16 @@ import {
   Menu,
   MenuItem,
   Radio,
+  Grid,
   Toolbar,
   Typography,
+  Card,
   useMediaQuery,
   useTheme,
+  CardMedia,
+  CardContent,
+  Popover,
+  Divider,
 } from '@mui/material'
 
 import React, { useEffect, useState } from 'react'
@@ -36,8 +42,23 @@ import { useFullScreenLoading } from '@/context/FullScreenLoadingProvider'
 import { useThemeContext } from '@/themes/ThemeRegistry'
 import { Icono } from '@/components/Icono'
 import { useSidebar } from '@/context/SideBarProvider'
+import { useCart } from '@/context/CartProvider'
+import { Constantes } from '@/config/Constantes'
 
 export const NavbarUser = () => {
+  //Estado del popover
+  const [anchorElPop, setAnchorElPop] =
+    React.useState<HTMLButtonElement | null>(null)
+
+  const {
+    cartOpen,
+    closeCartDrawer,
+    openCartDrawer,
+    cartEstado,
+    cartContent,
+    eliminarProducto,
+  } = useCart()
+
   const [modalAyuda, setModalAyuda] = useState(false)
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -190,6 +211,42 @@ export const NavbarUser = () => {
           >
             {siteName()}
           </Typography>
+
+          <div style={{ position: 'relative' }}>
+            <IconoTooltip
+              color={cartEstado ? 'primary' : 'disabled'}
+              id={'carritoProductos'}
+              titulo={'Carrito'}
+              key={`accionVerCarrito`}
+              accion={(event: React.MouseEvent<HTMLButtonElement>) => {
+                if (cartEstado) {
+                  if (cartOpen) {
+                    setAnchorElPop(null)
+                    closeCartDrawer()
+                  } else {
+                    setAnchorElPop(event.currentTarget)
+                    openCartDrawer()
+                  }
+                }
+              }}
+              icono={'shopping_cart'}
+              name={'Ver total del carrito'}
+            />
+            {cartEstado && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '3px',
+                  right: '3px',
+                  background: '#B71C1C',
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                }}
+              ></div>
+            )}
+          </div>
+
           <IconoTooltip
             id={'ayudaUser'}
             name={'Ayuda'}
@@ -319,6 +376,147 @@ export const NavbarUser = () => {
           </Menu>
         </Toolbar>
       </AppBar>
+
+      <Popover
+        id={cartOpen ? 'simple-popover' : undefined}
+        open={cartOpen}
+        anchorEl={anchorElPop}
+        onClose={closeCartDrawer}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+      >
+        <Grid container spacing={2} sx={{ p: 2 }}>
+          <Grid item xs={12} width="250px">
+            <Typography variant="h6">Contenido carrito</Typography>
+            <Box gap={1} marginTop={2} display="flex" flexDirection="column">
+              {cartContent.length > 0 ? (
+                <>
+                  {cartContent.map((elem) => (
+                    <Card
+                      key={`sub-product-${elem.id}-${elem.nombreProducto}`}
+                      sx={{
+                        display: 'flex',
+                        width: '100%',
+                        border: 1,
+                        borderColor: theme.palette.primary.main,
+                        flexDirection: 'row',
+                      }}
+                    >
+                      <CardMedia
+                        component="img"
+                        sx={{
+                          width: '80px',
+                          height: '80px',
+                          objectFit: 'cover',
+                          padding: 1,
+                          borderRadius: 3,
+                        }}
+                        crossOrigin="anonymous"
+                        image={`${Constantes.baseUrl.replaceAll('/api', '')}/${elem.imagen}`}
+                        alt={`producto-cart-${elem.id}-${elem.nombreProducto}`}
+                      />
+
+                      <CardContent
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          padding: 1,
+                        }}
+                      >
+                        <Typography
+                          color={theme.palette.primary.main}
+                          fontWeight="semibold"
+                          component="div"
+                          variant="body1"
+                        >
+                          {elem.nombreProducto}
+                        </Typography>
+
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="baseline"
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            color="text.secondary"
+                            component="div"
+                          >
+                            {` ${elem.cantidad} unidades`}
+                          </Typography>
+                          {/*
+                          <Typography
+                            variant="subtitle2"
+                            color="text.main"
+                            component="div"
+                          >
+                            {`Costo ${elem.precio * elem.cantidad} Bs.`}
+                          </Typography>
+                      */}
+
+                          <Button onClick={() => eliminarProducto(elem.id)}>
+                            <Typography
+                              variant="subtitle2"
+                              color="text.main"
+                              component="div"
+                            >
+                              Eliminar
+                            </Typography>
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
+              ) : (
+                <Typography>No existen productos</Typography>
+              )}
+            </Box>
+          </Grid>
+          <Divider />
+          <Grid item xs={12} gap={3}>
+            {/*
+              <Box
+                display="flex"
+                width="full"
+                flexDirection="row"
+                justifyContent="space-between"
+                gap={1}
+                paddingX={1}
+                alignItems="center"
+              >
+                <Typography variant="h5"></Typography>
+                <Typography
+                  variant="h5"
+                  sx={{ color: theme.palette.primary.main }}
+                >
+                  {total} Bs.
+                </Typography>
+              </Box>
+              */}
+
+            <Box height={'5px'} />
+            <Button
+              variant={cartContent.length === 0 ? 'outlined' : 'contained'}
+              onClick={() => router.push('/admin/carrito')}
+              fullWidth
+            >
+              <Box
+                display="flex"
+                alignItems="center"
+                gap={1}
+                justifyContent="space-between"
+              >
+                <Icono color="inherit">local_mall</Icono>
+                <Typography>Realizar pedido</Typography>
+              </Box>
+            </Button>
+            <Box height={'5px'} />
+          </Grid>
+        </Grid>
+      </Popover>
     </>
   )
 }

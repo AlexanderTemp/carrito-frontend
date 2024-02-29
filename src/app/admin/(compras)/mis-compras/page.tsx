@@ -103,7 +103,7 @@ const MisComprasPage = () => {
               ? 'error'
               : ComprasData.estado == 'PENDIENTE'
                 ? 'warning'
-                : 'primary'
+                : 'info'
         }
       />,
     ]
@@ -131,7 +131,6 @@ const MisComprasPage = () => {
         url: `${Constantes.baseUrl}/ventas`,
       })
 
-      console.log(respuesta)
       setcomprasData(respuesta.datos)
       // setcomprasData(respuesta.datos?.filas)
       setTotal(respuesta.datos?.total)

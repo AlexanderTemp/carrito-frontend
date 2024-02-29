@@ -1,11 +1,10 @@
 'use client'
-'use client'
 import Typography from '@mui/material/Typography'
 import { ReactNode, useEffect, useState } from 'react'
 import { useAlerts, useSession } from '@/hooks'
 import { useAuth } from '@/context/AuthProvider'
 import { CasbinTypes } from '@/types'
-import { Box, Grid, useMediaQuery, useTheme } from '@mui/material'
+import { Box, useMediaQuery, useTheme } from '@mui/material'
 import { delay, InterpreteMensajes, siteName } from '@/utils'
 import { Constantes } from '@/config/Constantes'
 import { imprimir } from '@/utils/imprimir'
@@ -15,8 +14,6 @@ import CustomMensajeEstado from '@/components/estados/CustomMensajeEstado'
 import { IconoTooltip } from '@/components/botones/IconoTooltip'
 import { BotonBuscar } from '@/components/botones/BotonBuscar'
 import { BotonOrdenar } from '@/components/botones/BotonOrdenar'
-import { IconoBoton } from '@/components/botones/IconoBoton'
-import { ordenFiltrado } from '@/utils/orden'
 import { Paginacion } from '@/components/datatable/Paginacion'
 import { CustomDataTable } from '@/components/datatable/CustomDataTable'
 import {
@@ -35,13 +32,9 @@ export default function HistorialVentasPage() {
     },
   })
 
-  const [estadoVenta, setEstadoVenta] = useState<EnvioNuevoEstado>({
-    id: -1,
-    estado: EstadoVenta.PENDIENTE,
-  })
-
   const [ventasData, setVentasData] = useState<VentaCRUDType[]>([])
   const [loading, setLoading] = useState<boolean>(true)
+  const [loadingCambioEstado, setLoadingCambioEstado] = useState<boolean>(false)
 
   // Hook para mostrar alertas
   const { Alerta } = useAlerts()
@@ -52,10 +45,6 @@ export default function HistorialVentasPage() {
   /// Indicador para mostrar una vista de alerta de cambio de estado
   const [mostrarAlertaEstadoVenta, setMostrarAlertaEstadoVenta] =
     useState(false)
-
-  const [ventaEdicion, setVentaEdicion] = useState<
-    VentaCRUDType | undefined | null
-  >()
 
   // Variables de páginado
   const [limite, setLimite] = useState<number>(10)
@@ -78,19 +67,6 @@ export default function HistorialVentasPage() {
   const theme = useTheme()
   const xs = useMediaQuery(theme.breakpoints.only('xs'))
 
-  /// Método que muestra alerta de cambio de estado
-
-  const editarEstadoVentaModal = (venta: VentaCRUDType) => {
-    setVentaEdicion(venta) // para mostrar datos de modal en la alerta
-    setMostrarAlertaEstadoVenta(true) // para mostrar alerta de venta
-  }
-
-  const cancelarAlertaEstadoVenta = async () => {
-    setMostrarAlertaEstadoVenta(false)
-    await delay(500) // para no mostrar undefined mientras el modal se cierra
-    setVentaEdicion(null)
-  }
-
   // router para conocer la ruta actual
   const pathname = usePathname()
 
@@ -100,12 +76,7 @@ export default function HistorialVentasPage() {
   >([
     { campo: 'codigoVenta', nombre: 'Código', ordenar: true },
     { campo: 'costoTotal', nombre: 'Costo', ordenar: true },
-    { campo: 'nombreUsuario', nombre: 'Nombres del Usuario', ordenar: true },
-    {
-      campo: 'apellidosUsuario',
-      nombre: 'Apellidos del Usuario',
-      ordenar: true,
-    },
+    { campo: 'correoUsuario', nombre: 'Correo del Usuario', ordenar: true },
     { campo: 'producto', nombre: 'Detalle', ordenar: true },
     { campo: 'estado', nombre: 'Estado', ordenar: true },
     { campo: 'cambiar-estado', nombre: 'Cambiar estado', ordenar: false },
@@ -126,17 +97,10 @@ export default function HistorialVentasPage() {
       </Typography>,
 
       <Typography
-        key={`${ventaData.idVenta}-${indexVenta}-nombre-usuario`}
+        key={`${ventaData.idVenta}-${indexVenta}-correo-usuario`}
         variant={'body2'}
       >
-        {`${ventaData.nombreUsuario}`}
-      </Typography>,
-
-      <Typography
-        key={`${ventaData.idVenta}-${indexVenta}-apellido-usuario`}
-        variant={'body2'}
-      >
-        {`${ventaData.apellidosUsuario}`}
+        {`${ventaData.correoUsuario}`}
       </Typography>,
 
       <Box
@@ -165,41 +129,50 @@ export default function HistorialVentasPage() {
               ? 'error'
               : ventaData.estado == 'PENDIENTE'
                 ? 'warning'
-                : 'primary'
+                : 'info'
         }
       />,
-      <FormInputDropdown
-        label=""
-        control={control}
+      <Box
         key={`${ventaData.idVenta}-${indexVenta}-cambio`}
-        id="estado"
-        name="estado"
-        onChange={(event) => {
-          imprimir(event.target.value)
-        }}
-        options={[
-          {
-            key: '1',
-            value: 'PENDIENTE',
-            label: 'PENDIENTE',
-          },
-          {
-            key: '2',
-            value: 'ENVIADO',
-            label: 'ENVIADO',
-          },
-          {
-            key: '3',
-            value: 'ENTREGADO',
-            label: 'ENTREGADO',
-          },
-          {
-            key: '4',
-            value: 'CANCELADO',
-            label: 'CANCELADO',
-          },
-        ]}
-      />,
+        sx={{ width: '150px' }}
+      >
+        <FormInputDropdown
+          label=""
+          control={{
+            ...control,
+            _defaultValues: {
+              estado: ventaData.estado as EstadoVenta,
+            },
+          }}
+          id="estado"
+          name="estado"
+          onChange={(event) => {
+            actualizarEstadoVenta(ventaData.idVenta, event.target.value)
+          }}
+          options={[
+            {
+              key: '1',
+              value: 'PENDIENTE',
+              label: 'PENDIENTE',
+            },
+            {
+              key: '2',
+              value: 'ENVIADO',
+              label: 'ENVIADO',
+            },
+            {
+              key: '3',
+              value: 'ENTREGADO',
+              label: 'ENTREGADO',
+            },
+            {
+              key: '4',
+              value: 'CANCELADO',
+              label: 'CANCELADO',
+            },
+          ]}
+        />
+      </Box>,
     ]
   )
 
@@ -252,19 +225,32 @@ export default function HistorialVentasPage() {
     }
   }
 
-  const agregarVentaModal = () => {
-    setVentaEdicion(undefined)
-    setModalVenta(true)
-  }
-  const editarVentaModal = (venta: VentaCRUDType) => {
-    setVentaEdicion(venta)
-    setModalVenta(true)
-  }
+  const actualizarEstadoVenta = async (idVenta: number, estado: string) => {
+    try {
+      setLoadingCambioEstado(true)
+      await delay(1000)
 
-  const cerrarModalVenta = async () => {
-    setModalVenta(false)
-    await delay(500)
-    setVentaEdicion(undefined)
+      imprimir(`${idVenta} y ${estado}`)
+
+      const respuesta = await sesionPeticion({
+        url: `${Constantes.baseUrl}/ventas/cambio-estado/${idVenta}`,
+        tipo: 'patch',
+        body: { estado },
+      })
+
+      await obtenerVentasPeticion()
+
+      Alerta({
+        mensaje: `Actualización de estado existosa.`,
+        variant: 'success',
+      })
+    } catch (e) {
+      imprimir(`Error al actualizar la venta`, e)
+      setErrorVentasData(e)
+      Alerta({ mensaje: `${InterpreteMensajes(e)}`, variant: 'error' })
+    } finally {
+      setLoadingCambioEstado(false)
+    }
   }
 
   async function definirPermisos() {

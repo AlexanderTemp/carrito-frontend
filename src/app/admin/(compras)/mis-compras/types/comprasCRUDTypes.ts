@@ -15,39 +15,3 @@ export interface ComprasCRUDType {
   totalVenta: number
   productos: RowCompra[]
 }
-
-/*
-
-      {/*
-      <FormInputDropdown
-        label=""
-        key={`${ventaData.idVenta}-${indexVenta}-cambio`}
-        id="dropdown-select"
-        name="change-sale-state"
-        onChange={() => {}}
-        options={[
-          {
-            key: '1',
-            value: 'PENDIENTE',
-            label: 'PENDIENTE',
-          },
-          {
-            key: '2',
-            value: 'ENVIADO',
-            label: 'ENVIADO',
-          },
-          {
-            key: '3',
-            value: 'ENTREGADO',
-            label: 'ENTREGADO',
-          },
-          {
-            key: '4',
-            value: 'CANCELADO',
-            label: 'CANCELADO',
-          },
-        ]}
-      />,
-
-
-*/
